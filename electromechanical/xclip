@@ -1,0 +1,52 @@
+import seaborn as sns
+import pandas as pd
+import matplotlib.pyplot as plt
+import sys
+import numpy as np
+
+
+def plot_curve(sample, cutoff, legend_visible):
+    plt.rcParams.update({'font.size': 16})
+    sample_name = {'p': 'PG-C', 'h': 'CG-C', 'g': 'GG-C'}
+    all_data = pd.read_csv(f"combined_data/{sample}_combined_data.csv")
+    all_data.drop(all_data.tail(cutoff).index, inplace=True)
+    all_data['Time'] = all_data.index * (1000/30)
+    all_data['Time'] = (all_data['Time'] - all_data['Time'].min()) / (all_data['Time'].max() - all_data['Time'].min())
+
+    all_data['Strain'] = all_data['Strain'].apply(lambda x : x *100)
+    # Create the plot
+    plt.figure(figsize=(10, 4.5))
+    sns.lineplot(x='Strain', y='dR/r0', data=all_data, sort=False)
+    sizes = 10*np.ones(len(all_data))
+    sns.scatterplot(legend=False,data=all_data, x='Strain', y='dR/r0', s=400,  hue='Time', palette='crest')
+ #all_data.plot(x='Strain', y='dR/r0', kind='line', ax=plt.gca())
+
+    # Customize the plot
+    specimen, number = sample[0], sample[1]
+    #plt.title(f'$\Delta R / R_0$ vs. Strain ({sample_name[specimen]}{number})', fontsize=22)
+    plt.title(f'{sample_name[specimen]} Specimen#{number}', fontsize=22)
+    plt.xlabel('Strain (%)', fontsize=18)
+    plt.ylabel('$\Delta R / R_0 $ $(\\frac{\Omega}{\Omega})$', fontsize=24)
+    plt.xticks(fontsize=20)
+    plt.yticks(fontsize=20)
+
+
+    
+    #plt.ylim((-1,50))
+    # Show the plot
+    plt.savefig(f"final_graphs/{sample}_electromechanical_response.pdf", bbox_inches='tight')
+    plt.show()
+
+param_list = [
+        ("g1", 131, True),#131 #91
+        ("g2", 111, False),#111 #71
+        ("g3", 171, False),#171 #141
+        ("h1", 3, False),
+        ("h2", 0, False),
+        ("h3", 0, False),
+        ("p1", 1, False),
+        ("p2", 3, False),
+        ("p3", 3, False)]
+
+for params in param_list:
+    plot_curve(*params)
